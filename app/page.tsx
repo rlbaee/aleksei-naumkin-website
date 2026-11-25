@@ -1,5 +1,5 @@
-import { ViruLexSite } from '@/components/virulex-site'
+import { PortfolioSite } from '@/components/portfolio-site'
 
 export default function Page() {
-  return <ViruLexSite />
+  return <PortfolioSite />
 }
