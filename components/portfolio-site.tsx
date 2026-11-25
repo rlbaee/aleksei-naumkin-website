@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowRight, ArrowUpRight, Menu, X } from 'lucide-react'
 import { LanguageToggle, useLanguage } from '@/components/language-provider'
 import { BookingForm } from '@/components/booking-form'
@@ -122,6 +122,29 @@ export function PortfolioSite() {
   const text = copy[language]
   const [selectedService, setSelectedService] = useState<ServiceSlug | ''>('')
 
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return
+
+    const revealTargets = document.querySelectorAll<HTMLElement>('[data-reveal]')
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!(entry.target instanceof HTMLElement) || !entry.isIntersecting) return
+        entry.target.classList.add('is-revealed')
+        observer.unobserve(entry.target)
+      })
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 })
+
+    revealTargets.forEach((target) => {
+      target.classList.add('reveal-pending')
+      observer.observe(target)
+    })
+
+    return () => {
+      observer.disconnect()
+      revealTargets.forEach((target) => target.classList.remove('reveal-pending', 'is-revealed'))
+    }
+  }, [])
+
   function chooseService(slug: ServiceSlug) {
     setSelectedService(slug)
     window.history.replaceState(null, '', '#booking')
@@ -153,7 +176,7 @@ export function PortfolioSite() {
 
         <section className="services section-pad" id="services">
           <div className="wrap">
-            <div className="section-heading">
+            <div className="section-heading" data-reveal>
               <div><p className="eyebrow">{text.servicesLabel}</p><h2>{text.servicesTitle}</h2></div>
               <p>{text.servicesNote}</p>
             </div>
@@ -162,7 +185,13 @@ export function PortfolioSite() {
                 const service = serviceDetails[slug][language]
 
                 return (
-                  <article className={`service-entry${index === 0 ? ' service-entry-primary' : ''}${selectedService === slug ? ' service-entry-selected' : ''}`} id={slug} key={slug}>
+                  <article
+                    className={`service-entry${index === 0 ? ' service-entry-primary' : ''}${selectedService === slug ? ' service-entry-selected' : ''}`}
+                    data-reveal
+                    data-reveal-order={index % 4}
+                    id={slug}
+                    key={slug}
+                  >
                     <div className="service-entry-heading">
                       <h3>{service.title}</h3>
                       <p>{service.intro}</p>
@@ -183,21 +212,23 @@ export function PortfolioSite() {
 
         <section className="booking section-pad" id="booking">
           <div className="wrap">
-            <div className="section-heading">
+            <div className="section-heading" data-reveal>
               <div><p className="eyebrow">{text.bookingLabel}</p><h2>{text.bookingTitle}</h2></div>
               <p>{text.bookingIntro}</p>
             </div>
-            <BookingForm
-              selectedService={selectedService}
-              onServiceChange={setSelectedService}
-              notice={text.bookingNotice}
-              submittedMessage={text.bookingNotSent}
-            />
+            <div data-reveal>
+              <BookingForm
+                selectedService={selectedService}
+                onServiceChange={setSelectedService}
+                notice={text.bookingNotice}
+                submittedMessage={text.bookingNotSent}
+              />
+            </div>
           </div>
         </section>
 
         <section className="about section-pad" id="about">
-          <div className="wrap about-grid">
+          <div className="wrap about-grid" data-reveal>
             <div className="about-heading">
               <p className="eyebrow">{text.aboutLabel}</p>
               <h2>{text.aboutTitle}</h2>
@@ -209,7 +240,7 @@ export function PortfolioSite() {
         </section>
 
         <section className="office section-pad" id="office">
-          <div className="wrap office-grid">
+          <div className="wrap office-grid" data-reveal>
             <div className="office-copy">
               <p className="eyebrow">{text.officeLabel}</p>
               <h2>{text.officeTitle}</h2>
